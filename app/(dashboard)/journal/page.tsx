@@ -1,5 +1,6 @@
 import EntryCard from "@/components/EntryCard";
 import NewEntryCard from "@/components/NewEntryCard";
+import { analyze } from "@/utils/ai";
 import { getUserByClerkID } from "@/utils/auth";
 import { prisma } from "@/utils/db";
 import Link from "next/link";
@@ -17,6 +18,7 @@ const getEntries = async () => {
       analysis: true,
     },
   });
+  await analyze("how do i make a bacon sandwich");
   return entries;
 };
 const JournalPage = async () => {
