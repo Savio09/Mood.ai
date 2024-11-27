@@ -14,11 +14,7 @@ const getEntries = async () => {
     orderBy: {
       createdAt: "desc",
     },
-    include: {
-      analysis: true,
-    },
   });
-  await analyze("how do i make a bacon sandwich");
   return entries;
 };
 const JournalPage = async () => {
