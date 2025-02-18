@@ -9,8 +9,8 @@ generator client {
 }
 
 datasource db {
-  provider     = "postgresql"
-  url          = env("DATABASE_URL")
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 model User {
@@ -20,6 +20,7 @@ model User {
   clerkId   String         @unique
   email     String         @unique
   entries   JournalEntry[]
+  analyses  Analysis[]
 }
 
 model JournalEntry {
@@ -35,15 +36,19 @@ model JournalEntry {
 }
 
 model Analysis {
-  id        String       @id @default(uuid())
-  createdAt DateTime     @default(now())
-  updatedAt DateTime     @updatedAt
-  entryId   String
-  entry     JournalEntry @relation(fields: [entryId], references: [id], onDelete: Cascade)
-  mood      String
-  summary   String
-  color     String
-  negative  Boolean
-  subject   String
+  id             String       @id @default(uuid())
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  entryId        String
+  userId         String
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  entry          JournalEntry @relation(fields: [entryId], references: [id], onDelete: Cascade)
+  mood           String
+  summary        String
+  color          String
+  negative       Boolean
+  subject        String
+  sentimentScore Float        @default(0)
   @@unique([entryId])
+  @@index([userId])
 }
