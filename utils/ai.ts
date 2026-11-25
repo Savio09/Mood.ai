@@ -12,6 +12,15 @@ import { loadQARefineChain } from "langchain/chains";
 import { OpenAIEmbeddings } from "@langchain/openai";
 import { MemoryVectorStore } from "langchain/vectorstores/memory";
 
+// Keep provider upgrades configurable without another application release.
+const createModel = () => new ChatOpenAI({
+  modelName: process.env.OPENAI_MODEL || "gpt-6-luna",
+  apiKey: process.env.OPENAI_API_KEY,
+  timeout: 20000,
+  maxRetries: 1,
+  modelKwargs: { temperature: undefined, reasoning_effort: "none" },
+});
+
 // Define the schema
 const schema = z.object({
   mood: z.string().describe("The mood of this journal entry"),
@@ -59,11 +68,7 @@ const getPrompt = async (content) => {
 export const analyze = async (content) => {
   const messages = await getPrompt(content);
 
-  const model = new ChatOpenAI({
-    temperature: 0,
-    modelName: "gpt-3.5-turbo",
-    apiKey: process.env.OPENAI_API_KEY, // Ensure your API key is set
-  });
+  const model = createModel();
 
   const response = await model.invoke(messages);
   const output = response.content;
@@ -78,6 +83,7 @@ export const analyze = async (content) => {
 };
 
 export const qa = async (question, entries) => {
+  if (!entries.length) return "Write a journal entry first, then ask about it.";
   // Learning about vector databases
   const docs = entries.map((entry) => {
     return new Document({
@@ -86,9 +92,9 @@ export const qa = async (question, entries) => {
     });
   });
 
-  const model = new ChatOpenAI({ temperature: 0, modelName: "gpt-3.5-turbo" });
+  const model = createModel();
   const chain = loadQARefineChain(model);
-  const embeddings = new OpenAIEmbeddings();
+  const embeddings = new OpenAIEmbeddings({ modelName: "text-embedding-3-small", timeout: 20000, maxRetries: 1 });
   const store = await MemoryVectorStore.fromDocuments(docs, embeddings);
   const relevantDocs = await store.similaritySearch(question);
 

@@ -18,7 +18,17 @@ export const PATCH = async (request, { params }) => {
     },
   });
 
-  const analysis = await analyze(updatedEntry.content);
+  let analysis;
+  try {
+    analysis = await analyze(updatedEntry.content);
+  } catch {
+    // Saving is independent of the external analysis service. Remove stale
+    // analysis so the UI never associates old results with new journal text.
+    await prisma.analysis.deleteMany({ where: { entryId: updatedEntry.id, userId: user.id } });
+    revalidatePath("/journal");
+    return NextResponse.json({ data: { ...updatedEntry, analysis: null,
+      warning: "Entry saved. AI analysis is temporarily unavailable." } });
+  }
 
   const updated = await prisma.analysis.upsert({
     where: {

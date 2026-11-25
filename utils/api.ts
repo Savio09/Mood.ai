@@ -9,6 +9,7 @@ export const updatedEntry = async (id, content) => {
       body: JSON.stringify({ content }),
     })
   );
+  if (!res.ok) throw new Error("The request could not be completed. Please try again.");
   if (res.ok) {
     const data = await res.json();
     return data.data;
@@ -21,9 +22,9 @@ export const createNewEntry = async () => {
       method: "POST",
     })
   );
+  if (!res.ok) throw new Error("The request could not be completed. Please try again.");
   if (res.ok) {
     const data = await res.json();
-    console.log(data);
     return data.data;
   }
 };
@@ -35,9 +36,9 @@ export const askQuestions = async (question) => {
       body: JSON.stringify({ question }),
     })
   );
+  if (!res.ok) throw new Error("The request could not be completed. Please try again.");
   if (res.ok) {
     const data = await res.json();
-    console.log(data);
     return data.data;
   }
 };

@@ -17,6 +17,10 @@ export const POST = async (request) => {
       createdAt: true,
     },
   });
-  const answer = await qa(question, entries);
-  return NextResponse.json({ data: answer });
+  try {
+    const answer = await qa(question, entries);
+    return NextResponse.json({ data: answer });
+  } catch {
+    return NextResponse.json({ error: "AI answers are temporarily unavailable." }, { status: 503 });
+  }
 };

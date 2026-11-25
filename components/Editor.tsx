@@ -7,29 +7,36 @@ import { useAutosave } from "react-autosave";
 const Editor = ({ entry }) => {
   const [value, setValue] = useState(entry.content);
   const [isLoading, setIsLoading] = useState(false);
-  const [analysis, setAnalysis] = useState(entry.analysis);
+  const [analysis, setAnalysis] = useState(entry.analysis || {});
+  const [status, setStatus] = useState("");
   const { summary, subject, mood, negative, color } = analysis;
   const analysisData = [
     { name: "Summary", value: summary },
     { name: "Subject", value: subject },
     { name: "Mood", value: mood },
-    { name: "Negative", value: negative ? "Yes" : "No" },
+    { name: "Negative", value: negative == null ? "—" : negative ? "Yes" : "No" },
   ];
 
   useAutosave({
     data: value,
     onSave: async (_value) => {
       setIsLoading(true);
-      const data = await updatedEntry(entry.id, _value);
-      setAnalysis(data.analysis);
-      setIsLoading(false);
+      try {
+        const data = await updatedEntry(entry.id, _value);
+        setAnalysis(data.analysis || {});
+        setStatus(data.warning || "Saved");
+      } catch {
+        setStatus("Could not save. Keep this page open and try editing again.");
+      } finally {
+        setIsLoading(false);
+      }
     },
   });
   return (
     <div className="w-full h-full grid grid-cols-3">
       <div className="col-span-2">
-        {isLoading && <div>...loading</div>}
-        <textarea
+        <div role="status">{isLoading ? "Saving…" : status}</div>
+        <textarea aria-label="Journal entry"
           value={value}
           onChange={(e) => setValue(e.target.value)}
           className="w-full h-full p-8 text-xl outline-none"
@@ -47,7 +54,7 @@ const Editor = ({ entry }) => {
                 key={idx}
               >
                 <span className="text-lg font-semibold">{item.name}</span>
-                <span>{item.value}</span>
+                <span>{item.value || "—"}</span>
               </li>
             ))}
           </ul>

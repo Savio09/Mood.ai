@@ -6,7 +6,8 @@ import { useState } from "react";
 const Question = () => {
   const [value, setValue] = useState("");
   const [loading, setIsLoading] = useState(false);
-  const [response, setResponse] = useState();
+  const [response, setResponse] = useState("");
+  const [error, setError] = useState("");
 
   const onChange = (e) => {
     setValue(e.target.value);
@@ -15,10 +16,14 @@ const Question = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-    const answer = await askQuestions(value);
-    setResponse(answer);
-    setValue("");
-    setIsLoading(false);
+    setError("");
+    try {
+      const answer = await askQuestions(value);
+      setResponse(answer);
+      setValue("");
+    } catch {
+      setError("AI answers are temporarily unavailable. Please try again later.");
+    } finally { setIsLoading(false); }
   };
 
   return (
@@ -40,7 +45,8 @@ const Question = () => {
           Ask
         </button>
       </form>
-      {loading && <div>loading...</div>}
+      {loading && <div role="status">Thinking…</div>}
+      {error && <p role="alert">{error}</p>}
       {response && <div>{response}</div>}
     </div>
   );
